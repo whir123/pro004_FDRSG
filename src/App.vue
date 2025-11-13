@@ -2,7 +2,7 @@
   <!-- 最外层：两列 CSS Grid 布局：左列参数面板，右列预览 -->
   <div class="grid">
     <div class="panel">
-      <h2 style="margin:0 0 8px">分形维数单元基底生成（AUPG）</h2>
+      <h2 style="margin:0 0 8px">分形维数单元基底生成</h2>
       <hr />
 
       <!-- 随机数发生器 | 单选组 + 两个种子 -->
@@ -14,8 +14,8 @@
           <label class="checkbox"><input type="radio" name="rng" value="lecuyer" v-model="rng">L'Ecuyer</label>
         </div>
         <div class="row" style="margin-top:6px">
-          <div><label>Seed 1</label><input type="number" v-model.number="seed1" /></div>
-          <div><label>Seed 2</label><input type="number" v-model.number="seed2" /></div>
+          <div><label>Seed</label><input type="number" v-model.number="seed1" /></div>
+          <!-- <div><label>Seed 2</label><input type="number" v-model.number="seed2" /></div> -->
         </div>
       </div>
 
@@ -32,24 +32,23 @@
         </div>
 
         <!-- 生成面配置参数 Parameters -->
+        <!-- 部分旧参数废弃 -->
         <div class="row">
           <div><label>Physical size (mm)</label><input type="number" v-model.number="sizeMM" step="1" /></div>
-          <div><label>Mismatch length (mm)</label><input type="number" v-model.number="mismatchMM" step="1" /></div>
-        </div>
-        <div class="row">
-          <div><label>Transition length (mm)</label><input type="number" v-model.number="transitionMM" step="1" /></div>
           <div><label>Standard deviation (mm)</label><input type="number" v-model.number="stdMM" step="0.01" /></div>
         </div>
+        <!-- <div class="row"> -->
+          <!-- <div><label>Mismatch length (mm)</label><input type="number" v-model.number="mismatchMM" step="1" /></div> -->
+          <!-- <div><label>Transition length (mm)</label><input type="number" v-model.number="transitionMM" step="1" /></div> -->
+        <!-- </div> -->
         <div class="row">
           <div><label>Anisotropy factor</label><input type="number" v-model.number="aniso" step="0.01" /></div>
           <div><label>Fractal dimension</label><input type="number" v-model.number="D" step="0.01" /></div>
         </div>
-        <div class="row">
-          <div><label>Max matching fraction</label><input type="number" v-model.number="mfmax" min="0" max="1"
-              step="0.01" /></div>
-          <div><label>Min matching fraction</label><input type="number" v-model.number="mfmin" min="0" max="1"
-              step="0.01" /></div>
-        </div>
+        <!-- <div class="row"> -->
+          <!-- <div><label>Max matching fraction</label><input type="number" v-model.number="mfmax" min="0" max="1" step="0.01" /></div> -->
+          <!-- <div><label>Min matching fraction</label><input type="number" v-model.number="mfmin" min="0" max="1" step="0.01" /></div> -->
+        <!-- </div> -->
       </div>
 
       <div class="panel" style="padding:10px; margin:10px 0">
@@ -73,7 +72,7 @@
 
 <script setup>
 import { ref, computed } from 'vue'
-import { generateAUPG } from './lib/aupg' // 核心算法（频域自仿射 + AUPG 匹配），返回 { ZA, ZB, meta }。此处只用 ZB（Bottom）
+import { generateAUPG } from './lib/srm' // 核心算法（频域自仿射 + AUPG 匹配），返回 { Z, meta }。
 import { gridToSTL } from './lib/stl'
 import SurfaceViewer from './components/SurfaceViewer.vue'
 
@@ -121,21 +120,19 @@ function remapZ_toRangeZero(z, targetRange) {
 // ========= 生成后立刻重标定 预览为“重标定后” =========
 function run() {
   const t0 = performance.now()
-  const { ZB: bottom } = generateAUPG({
+  const { Z } = generateAUPG({
     nx: nx.value, ny: ny.value, L: L.value,
     D: D.value,
-    sigma: stdMM.value / 1000, // 生成阶段仍用 sigma（不影响导出阶段重标定）
+    sigma: stdMM.value / 1000, // SRM 阶段仍然按 σ 定标
     anisotropy: aniso.value,
-    mfmin: mfmin.value, mfmax: mfmax.value,
-    TL: transitionMM.value / 1000,
-    ML: mismatchMM.value / 1000,
-    rngKind: rng.value, seed1: seed1.value, seed2: seed2.value
+    thetaDeg: 0, // 暂时没旋转需求 → 固定 0
+    rngKind: rng.value,
+    seed: seed1.value // 单 seed
+    // 其余旧参数（mfmin/mfmax/TL/ML/seed2）已废弃
   })
   // 立刻按 “Standard deviation (mm)” 作为上下峰值范围进行重标定，并把中面移到 0
   const targetRange_m = (stdMM.value || 0) / 1000
-  ZB.value = remapZ_toRangeZero(bottom, targetRange_m)
-
-  // info 保留原来的格式
+  ZB.value = remapZ_toRangeZero(Z, targetRange_m)
   info.value = `${res.value}×${res.value} | D=${D.value.toFixed(2)} | ${(performance.now() - t0).toFixed(0)} ms`
 }
 
@@ -154,3 +151,4 @@ function exportSTL() {
   saveBlob(finalBlob, 'surface_bottom.stl')
 }
 </script>
+

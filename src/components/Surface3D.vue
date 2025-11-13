@@ -145,6 +145,7 @@ function resetView() {
     controls.update();
   };
 };
+defineExpose({ resetView });
 
 onMounted(() => {
   init3D();

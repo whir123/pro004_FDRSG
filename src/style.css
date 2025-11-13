@@ -85,7 +85,7 @@ hr {
 .toolbar {
   position: absolute;
   right: 12px;
-  top: 717px;
+  top: 680px;
   display: flex;
   gap: 10px;
 }
@@ -103,3 +103,4 @@ hr {
   background: #72798f;
   border-color: #99999b;
 }
+

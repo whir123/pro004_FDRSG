@@ -1,8 +1,6 @@
 export function gridToSTL(z, Lx, Ly, name = "surface") {
-  const ny = z.length,
-    nx = z[0].length;
-  const dx = Lx / (nx - 1),
-    dy = Ly / (ny - 1);
+  const ny = z.length, nx = z[0].length;
+  const dx = Lx / (nx - 1), dy = Ly / (ny - 1);
   const lines = [`solid ${name}`];
 
   // 把三点三角形按 STL 文本格式写进 lines
@@ -42,8 +40,9 @@ export function gridToSTL(z, Lx, Ly, name = "surface") {
 
       tri(p00, p10, p11);
       tri(p00, p11, p01);
-    }
-  }
+    };
+  };
   lines.push(`endsolid ${name}`);
   return new Blob([lines.join("\n")], { type: "model/stl" });
-}
+};
+

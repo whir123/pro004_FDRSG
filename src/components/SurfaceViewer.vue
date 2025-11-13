@@ -1,7 +1,7 @@
 <template>
   <div ref="wrap" style="width:100%; height:100%; position:relative">
     <!-- 3D/2D 视图切换，子组件负责具体渲染 -->
-    <Surface3D v-if="mode==='3d'" :z="z" :Lx="Lx" :Ly="Ly" />
+    <Surface3D v-if="mode==='3d'" ref="s3d" :z="z" :Lx="Lx" :Ly="Ly" />
     <Surface2D v-if="mode==='2d'" :z="z" :Lx="Lx" :Ly="Ly" />
     <div class="toolbar">
       <button v-if="mode==='3d'" @click="resetView" title="重置相机视角" style="width: 80px;">重置视角</button>
@@ -22,17 +22,21 @@ const props = defineProps({
   Ly: { type: Number, required: true },
 });
 const mode = ref('3d');
+const s3d = ref(null);
 
 // ---------------- 2D/3D 模式切换 ----------------
 function setMode(m){
-  if (m === mode.value) return
-  mode.value = m
+  if (m === mode.value) return;
+  mode.value = m;
   if (mode.value === '2d') {
-    nextTick()
-  }
+    nextTick();
+  };
+  if (mode.value === '3d') {
+    nextTick(() => { s3d.value?.resetView?.() });
+  };
 }
 function resetView() {
-  // 仅在3D模式下触发Surface3D的resetView
-  // 这里可通过事件或ref调用Surface3D的resetView方法
-}
+  if (mode.value !== '3d') return;
+  s3d.value?.resetView?.();
+};
 </script>
