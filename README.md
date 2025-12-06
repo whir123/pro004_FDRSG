@@ -1,4 +1,4 @@
-## my-synfrac
+## FDRSG ｜ Fractal dimension rough surface generator
 
 #### ✍🏻 简介
 - 单张面基于经典谱表示法（SRM）生成
